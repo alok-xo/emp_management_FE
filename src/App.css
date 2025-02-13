@@ -1,0 +1,19 @@
+.app-container {
+    display: flex;
+  }
+  
+  /* Main content area */
+  .main-content {
+    margin-left: 280px;
+    padding: 20px;
+    flex-grow: 1;
+    transition: margin-left 0.3s ease-in-out;
+  }
+  
+  /* Adjust content area when sidebar is hidden */
+  @media (max-width: 768px) {
+    .main-content {
+      margin-left: 0;
+    }
+  }
+  

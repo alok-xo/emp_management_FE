@@ -1,0 +1,69 @@
+/* Input Container */
+.input-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.input-container label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #6a0dad;
+    margin-bottom: 5px;
+}
+
+.required {
+    color: red;
+}
+
+/* Input Wrapper for Normal & Password Fields */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Standard Input Styling */
+.input-wrapper input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 40px;
+    /* Space for icon */
+    border: 2px solid #6a0dad;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+/* Focus Effect */
+.input-wrapper input:focus {
+    border-color: #4b0082;
+}
+
+/* Password Toggle Button */
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #6a0dad;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    background: white;
+    padding-left: 5px;
+}
+
+/* Make sure the icon and input are aligned */
+.password-input {
+    padding-right: 45px !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .input-container {
+        width: 100%;
+    }
+}

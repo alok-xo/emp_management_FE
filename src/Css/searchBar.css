@@ -1,0 +1,33 @@
+.search-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 8px 12px;
+    width: 250px;
+}
+
+.search-icon {
+    color: #757575;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: #333;
+}
+
+.search-box input::placeholder {
+    color: #757575;
+}
+
+/* Focus state */
+.search-box:focus-within {
+    border-color: #4b0082;
+    box-shadow: 0 0 0 1px rgba(75, 0, 130, 0.1);
+}

@@ -1,0 +1,108 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.register-container {
+  display: flex;
+  width: 900px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.register-left {
+  flex: 1;
+  background-color: #5a189a;
+  color: white;
+  text-align: center;
+  padding: 40px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.dashboard-image {
+  width: 100%;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.register-right {
+  flex: 1;
+  background: white;
+  padding: 40px;
+  text-align: center;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+label {
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+input {
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.password-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  width: 100%;
+}
+
+.password-field input {
+  border: none;
+  flex: 1;
+  padding: 8px;
+}
+
+.eye-icon {
+  cursor: pointer;
+}
+
+.register-button {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #5a189a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.register-button:hover {
+  background-color: #4a148c;
+}
+
+.login-link {
+  margin-top: 15px;
+}
+
+.login-link a {
+  color: #5a189a;
+  text-decoration: none;
+  font-weight: bold;
+}
