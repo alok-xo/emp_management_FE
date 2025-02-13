@@ -4,10 +4,10 @@ import { FaEllipsisV, FaChevronDown } from "react-icons/fa"; // Icons
 
 const statuses = ["New", "Scheduled", "Ongoing", "Selected", "Rejected"];
 
-const CandidateTable = ({ candidates = [] }) => {
+const TableComponent = ({ data = [], columns = [], onEdit }) => {
     const [selectedStatus, setSelectedStatus] = useState(
-        candidates.reduce((acc, candidate, index) => {
-            acc[index] = candidate.status;
+        data.reduce((acc, item, index) => {
+            acc[index] = item.status || "";
             return acc;
         }, {})
     );
@@ -47,47 +47,42 @@ const CandidateTable = ({ candidates = [] }) => {
                 <thead>
                     <tr>
                         <th>Sr.no</th>
-                        <th>Candidate Name</th>
-                        <th>Email Address</th>
-                        <th>Phone Number</th>
-                        <th>Position</th>
-                        <th>Status</th>
-                        <th>Experience</th>
+                        {columns.map((column, index) => (
+                            <th key={index}>{column.label}</th>
+                        ))}
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {candidates.length > 0 ? (
-                        candidates.map((candidate, index) => (
+                    {data.length > 0 ? (
+                        data.map((item, index) => (
                             <tr key={index}>
                                 <td>{index + 1}</td>
-                                <td>{candidate.name}</td>
-                                <td>{candidate.email}</td>
-                                <td>{candidate.phone}</td>
-                                <td>{candidate.position}</td>
-
-                                {/* Status Dropdown */}
-                                <td className="dropdown-cell">
-                                    <div className="status-dropdown">
-                                        <button
-                                            className="dropdown-button"
-                                            onClick={() => toggleDropdown(index)}
-                                        >
-                                            {selectedStatus[index]} <FaChevronDown />
-                                        </button>
-                                        {dropdownOpen === index && (
-                                            <ul className="dropdown-menu">
-                                                {statuses.map((status) => (
-                                                    <li key={status} onClick={() => updateStatus(index, status)}>
-                                                        {status}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                {columns.map((column, colIndex) => (
+                                    <td key={colIndex}>
+                                        {column.key === "status" ? (
+                                            <div className="status-dropdown">
+                                                <button
+                                                    className="dropdown-button"
+                                                    onClick={() => toggleDropdown(index)}
+                                                >
+                                                    {selectedStatus[index] || "Select Status"} <FaChevronDown />
+                                                </button>
+                                                {dropdownOpen === index && (
+                                                    <ul className="dropdown-menu">
+                                                        {statuses.map((status) => (
+                                                            <li key={status} onClick={() => updateStatus(index, status)}>
+                                                                {status}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            item[column.key]
                                         )}
-                                    </div>
-                                </td>
-
-                                <td>{candidate.experience}</td>
+                                    </td>
+                                ))}
 
                                 {/* Action Menu (Edit/Delete) */}
                                 <td className="action-cell">
@@ -98,8 +93,8 @@ const CandidateTable = ({ candidates = [] }) => {
                                         />
                                         {actionMenuOpen === index && (
                                             <ul className="action-dropdown">
-                                                <li onClick={() => console.log("Edit clicked for", candidate)}>Edit</li>
-                                                <li onClick={() => console.log("Delete clicked for", candidate)}>Delete</li>
+                                                <li onClick={() => onEdit(item)}>Edit</li>
+                                                <li onClick={() => console.log("Delete clicked for", item)}>Delete</li>
                                             </ul>
                                         )}
                                     </div>
@@ -108,8 +103,8 @@ const CandidateTable = ({ candidates = [] }) => {
                         ))
                     ) : (
                         <tr className="no-data-row">
-                            <td colSpan="8" className="no-data-message">
-                                No candidates available.
+                            <td colSpan={columns.length + 2} className="no-data-message">
+                                No data available.
                             </td>
                         </tr>
                     )}
@@ -119,4 +114,4 @@ const CandidateTable = ({ candidates = [] }) => {
     );
 };
 
-export { CandidateTable };
+export { TableComponent };

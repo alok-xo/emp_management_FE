@@ -3,6 +3,7 @@ import Login from "../Screens/Auth/Login.jsx";
 import Register from "../Screens/Auth/Register.jsx";
 import Candidates from "../Screens/Candidates/Candidate.jsx";
 import MainLayout from "../Components/Layout/MainLayout.jsx";
+import Employee from "../Screens/Employee.jsx";
 
 export const AppRoutes = () => {
     // You can add authentication check here later
@@ -19,7 +20,7 @@ export const AppRoutes = () => {
             >
                 <Route path="/dashboard" element={<h1>Dashboard</h1>} />
                 <Route path="/candidates" element={<Candidates />} />
-                <Route path="/employees" element={<h1>Employees</h1>} />
+                <Route path="/employees" element={<Employee />} />
                 <Route path="/attendance" element={<h1>Attendance Page</h1>} />
                 <Route path="/leaves" element={<h1>Leaves Page</h1>} />
             </Route>

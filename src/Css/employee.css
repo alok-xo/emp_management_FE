@@ -22,8 +22,8 @@
 
 .dropdown-header {
     padding: 8px 15px;
-    border: 2px solid #6a0dad;
-    border-radius: 8px;
+    /* border: 2px solid #6a0dad; */
+    border-radius: 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -56,7 +56,6 @@
 .search-box input {
     width: 100%;
     padding: 8px 35px;
-    border: 2px solid #6a0dad;
     border-radius: 8px;
     font-size: 14px;
 }

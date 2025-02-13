@@ -1,29 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../Css/modal.css"; // Ensure you have this CSS file
 import InputField from "./Fields"; // Import the InputField component
 
-const Modal = ({ isOpen, onClose }) => {
+const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false }) => {
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
         phone: "",
         position: "",
-        experience: "",
-        resume: "",
-        declaration: false,
+        experience: "", // Only for Candidates
+        resume: "", // Only for Candidates
+        department: "", // Only for Employees
+        dateOfJoining: "", // Only for Employees
     });
 
+    // Populate form fields when editing a candidate or employee
+    useEffect(() => {
+        if (employeeData) {
+            setFormData({
+                fullName: employeeData.name || "",
+                email: employeeData.email || "",
+                phone: employeeData.phone || "",
+                position: employeeData.position || "",
+                experience: isCandidate ? employeeData.experience || "" : "", // Only for candidates
+                resume: "", // Only for candidates
+                department: !isCandidate ? employeeData.department || "" : "", // Only for employees
+                dateOfJoining: !isCandidate ? employeeData.dateOfJoining || "" : "", // Only for employees
+            });
+        } else {
+            setFormData({
+                fullName: "",
+                email: "",
+                phone: "",
+                position: "",
+                experience: isCandidate ? "" : "", // Only for candidates
+                resume: "", // Only for candidates
+                department: !isCandidate ? "" : "", // Only for employees
+                dateOfJoining: !isCandidate ? "" : "", // Only for employees
+            });
+        }
+    }, [employeeData, isCandidate]);
+
     const handleChange = (e) => {
-        const { name, value, type, checked, files } = e.target;
+        const { name, value, type, files } = e.target;
         setFormData({
             ...formData,
-            [name]: type === "checkbox" ? checked : type === "file" ? files[0] : value,
+            [name]: type === "file" ? files[0] : value,
         });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(formData);
+        console.log("Form Submitted:", formData);
         onClose();
     };
 
@@ -33,13 +61,13 @@ const Modal = ({ isOpen, onClose }) => {
         <div className="modal-overlay">
             <div className="modal-content">
                 <div className="modal-header">
-                    <p>Add New Candidate</p>
+                    <p>{employeeData ? "Edit Employee" : "Add New Candidate"}</p>
                     <button className="close-button" onClick={onClose}>&times;</button>
                 </div>
                 <form onSubmit={handleSubmit} className="modal-form">
                     <div className="input-grid">
                         <InputField
-                            label="Full Name"
+                            label={isCandidate ? "Full Name" : "Employee Name"}
                             type="text"
                             name="fullName"
                             value={formData.fullName}
@@ -73,28 +101,59 @@ const Modal = ({ isOpen, onClose }) => {
                             required
                         />
                     </div>
-                    <div className="input-grid">
-                        <InputField
-                            label="Experience"
-                            type="number"
-                            name="experience"
-                            value={formData.experience}
-                            onChange={handleChange}
-                            required
-                        />
+
+                    {/* Only Show for Candidates */}
+                    {isCandidate && (
+                        <div className="input-grid">
+                            <InputField
+                                label="Experience"
+                                type="number"
+                                name="experience"
+                                value={formData.experience}
+                                onChange={handleChange}
+                                required
+                            />
+                            <div className="file-upload">
+                                <label>Resume*</label>
+                                <input type="file" name="resume" onChange={handleChange} required={!employeeData} />
+                                <span className="upload-icon">📤</span>
+                            </div>
+                        </div>
+                    )}
+                    {/* Only Show for Employees */}
+                    {!isCandidate && (
+                        <div className="input-grid">
+                            <InputField
+                                label="Department"
+                                type="text"
+                                name="department"
+                                value={formData.department}
+                                onChange={handleChange}
+                                required
+                            />
+                            <InputField
+                                label="Date of Joining"
+                                type="date"
+                                name="dateOfJoining"
+                                value={formData.dateOfJoining}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {/* Only Show for Candidates */}
+                    {/* {isCandidate && (
                         <div className="file-upload">
                             <label>Resume*</label>
-                            <input type="file" name="resume" onChange={handleChange} required />
+                            <input type="file" name="resume" onChange={handleChange} required={!employeeData} />
                             <span className="upload-icon">📤</span>
                         </div>
-                    </div>
-                    <div className="declaration">
-                        <input type="checkbox" name="declaration" checked={formData.declaration} onChange={handleChange} required />
-                        <label>I hereby declare that the above information is true to the best of my knowledge and belief.</label>
-                    </div>
+                    )} */}
+
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                        <button type="submit" className={`save-button ${!formData.declaration ? "disabled" : ""}`} disabled={!formData.declaration}>
-                            Save
+                        <button type="submit" className="save-button">
+                            {employeeData ? "Update" : "Save"}
                         </button>
                     </div>
                 </form>

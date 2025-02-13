@@ -66,11 +66,11 @@
     padding: 20px;
 }
 
-/* Input Grid */
 .input-grid {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
+    align-items: center;
 }
 
 .input-grid div {
@@ -99,6 +99,7 @@ input:focus {
 /* File Upload */
 .file-upload {
     position: relative;
+    color: #5c0d87;
 }
 
 .file-upload .upload-icon {
@@ -156,3 +157,8 @@ input:focus {
     background: #d0d0d0;
     cursor: not-allowed;
 }
+
+/* 
+.file-upload input {
+    width: 100%;
+} */
