@@ -82,9 +82,7 @@ const Candidate = () => {
             await submitCandidate(formData, token);
             setIsModalOpen(false);
             // Refresh the candidates list
-            fetchCandidates(); // Refresh candidates list after submission
-            // Optionally, you can refresh the page
-            // window.location.reload(); // Uncomment if you want to refresh the entire page
+            // fetchCandidates(); // Refresh candidates list after submission
         } catch (error) {
             console.error('Error submitting candidate:', error);
             // Add error notification here

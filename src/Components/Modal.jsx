@@ -16,6 +16,9 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false, onSu
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
+    // Add position options
+    const positionOptions = ["intern", "fulltime", "junior", "senior", "teamlead"];
+
     // Populate form fields when editing a candidate or employee
     useEffect(() => {
         if (employeeData) {
@@ -156,14 +159,23 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false, onSu
                             onChange={handleChange}
                             required
                         />
-                        <InputField
-                            label="Position"
-                            type="text"
-                            name="position"
-                            value={formData.position}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="input-field">
+                            <label>Position*</label>
+                            <select
+                                name="position"
+                                value={formData.position}
+                                onChange={handleChange}
+                                required
+                                className="input-select"
+                            >
+                                <option value="">Select Position</option>
+                                {positionOptions.map((pos) => (
+                                    <option key={pos} value={pos}>
+                                        {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     {/* Only Show for Candidates */}

@@ -4,7 +4,8 @@ import Register from "../Screens/Auth/Register.jsx";
 import Candidates from "../Screens/Candidates/Candidate.jsx";
 import MainLayout from "../Components/Layout/MainLayout.jsx";
 import Employee from "../Screens/Employee.jsx";
-import Attendance from "../Screens/attendance.jsx";
+// import Attendance from "../Screens/attendance.jsx";
+import AttendanceNew from "../Screens/AttendanceNew.jsx";
 import Leaves from "../Screens/Leaves.jsx";
 
 
@@ -21,10 +22,11 @@ export const AppRoutes = () => {
             <Route
                 element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />}
             >
-                <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+                {/* <Route path="/dashboard" element={<h1>Dashboard</h1>} /> */}
                 <Route path="/candidates" element={<Candidates />} />
                 <Route path="/employees" element={<Employee />} />
-                <Route path="/attendance" element={<Attendance />} />
+                {/* <Route path="/attendance" element={<Attendance />} /> */}
+                <Route path="/attendance" element={<AttendanceNew />} />
                 <Route path="/leaves" element={<Leaves />} />
             </Route>
 
@@ -33,7 +35,7 @@ export const AppRoutes = () => {
                 path="/"
                 element={
                     isAuthenticated ? (
-                        <Navigate to="/dashboard" replace />
+                        <Navigate to="/candidates" replace />
                     ) : (
                         <Navigate to="/login" replace />
                     )

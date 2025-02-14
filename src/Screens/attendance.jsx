@@ -1,60 +1,68 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { TableComponent } from "../Components/Tables"; // Reusable table component
-import { FaChevronDown, FaSearch } from "react-icons/fa";
 import "../Css/attendance.css";
 import { ThemeProvider } from "../Components/Layout/ThemeContext";
 import Modal from "../Components/Modal";
-import "../Css/attendance.css"
 import Dropdown from "../Components/Dropdown";
+import { updateAttendanceStatus } from "../API/Attendance";
+import { employeeAPI } from "../API/Employee";
 
-// Mock Attendance Data
-const allAttendance = [
-    {
-        profile: "https://via.placeholder.com/50", // Profile Image Placeholder
-        name: "Bob Smith",
-        position: "Software Engineer",
-        department: "IT",
-        task: "Feature Development",
-        status: "Present",
-    },
-    {
-        profile: "https://via.placeholder.com/50",
-        name: "Alice Johnson",
-        position: "HR Manager",
-        department: "HR",
-        task: "Interviews",
-        status: "Absent",
-    },
-];
-
-// const statuses = ["All", "New", "Scheduled", "Ongoing", "Selected", "Rejected"];
-
-const attendanceStatuses = ["Present", "Absent"]; // Define attendance-specific statuses
+const attendanceStatuses = ["All", "Present", "Absent"];
+const positions = ["All", "Intern", "Software Engineer", "Designer", "Product Manager", "Sales Executive"];
 
 const Attendance = () => {
-    const [status, setStatus] = useState("Status");
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [status, setStatus] = useState("All");
     const [position, setPosition] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
 
+    // Fetch Employees from API
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                setLoading(true);
+                const response = await employeeAPI.getAllEmployees();
+                // Format employees to match table structure
+                const formattedEmployees = response.employees.map(emp => ({
+                    ...emp,
+                    createdAt: new Date(emp.createdAt).toLocaleDateString(),
+                    attendanceStatus: emp.attendanceStatus || "Absent" // Default to Absent if no status is provided
+                }));
+                setEmployees(formattedEmployees);
+                setError(null);
+            } catch (err) {
+                setError("Failed to fetch employees");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEmployees();
+    }, []);
+
     const filteredAttendance = useMemo(() => {
-        return allAttendance.filter((e) =>
-            (status === "Status" || e.status === status) &&
+        return employees.filter((e) =>
+            e.status === "selected" &&  // Ensure only selected employees are shown
+            (status === "All" || e.attendanceStatus === status) &&
             (position === "All" || e.position === position) &&
-            (e.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            e.fullName.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [status, position, searchQuery]);
+    }, [status, position, searchQuery, employees]);
+
 
     // Table Column Configuration
     const attendanceColumns = [
-        { label: "Profile", key: "profile", type: "image" }, // Image column
-        { label: "Employee Name", key: "name" },
+        { label: "Employee Name", key: "fullName" },
+        { label: "Email", key: "email" },
         { label: "Position", key: "position" },
         { label: "Department", key: "department" },
-        { label: "Task", key: "task" },
-        { label: "Status", key: "status" },
-        // { label: "Action", key: "action", type: "button" }, // Action buttons
+        { label: "Status", key: "attendanceStatus" },
+        { label: "Joining Date", key: "createdAt" },
     ];
 
     const handleEdit = (employee) => {
@@ -62,16 +70,33 @@ const Attendance = () => {
         setIsModalOpen(true);
     };
 
+    const handleStatusUpdate = async (employeeId, newStatus) => {
+        try {
+            await updateAttendanceStatus(employeeId, newStatus);
+            setEmployees((prevEmployees) =>
+                prevEmployees.map((emp) =>
+                    emp._id === employeeId ? { ...emp, attendanceStatus: newStatus } : emp
+                )
+            );
+        } catch (error) {
+            console.error("Failed to update attendance:", error);
+        }
+    };
+
     return (
         <ThemeProvider>
             <div className="attendance-container">
                 <h2>Attendance</h2>
 
+                {/* Loading and Error Handling */}
+                {loading && <div className="loading">Loading employees...</div>}
+                {error && <div className="error">{error}</div>}
+
                 {/* Filters Section */}
                 <div className="filter-section">
                     <Dropdown label="Status" options={attendanceStatuses} selected={status} setSelected={setStatus} />
+                    {/* <Dropdown label="Position" options={positions} selected={position} setSelected={setPosition} /> */}
                     <div className="search-box">
-                        {/* <FaSearch className="search-icon" /> */}
                         <input
                             type="text"
                             placeholder="Search"
@@ -81,19 +106,21 @@ const Attendance = () => {
                     </div>
                 </div>
 
-                <TableComponent 
-                    data={filteredAttendance} 
-                    columns={attendanceColumns} 
-                    onEdit={handleEdit}
-                    customStatuses={attendanceStatuses} // Pass custom statuses to table
-                />
+                {!loading && !error && (
+                    <TableComponent
+                        data={filteredAttendance}
+                        columns={attendanceColumns}
+                        onEdit={handleEdit}
+                        onStatusChange={handleStatusUpdate}
+                    />
+                )}
 
-                {/* Attendance Modal (Add/Edit) */}
+                {/* Attendance Modal */}
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     employeeData={editingEmployee}
-                    isCandidate={false} // Ensures only Employee-specific fields are shown
+                    isCandidate={false}
                 />
             </div>
         </ThemeProvider>
