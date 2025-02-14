@@ -5,7 +5,7 @@ import Dropdown from "../Components/Dropdown"; // Import the dropdown component
 
 const statuses = ["New", "Scheduled", "Ongoing", "Selected", "Rejected"];
 
-const TableComponent = ({ data = [], columns = [], onEdit, onDelete, customStatuses }) => {
+const TableComponent = ({ data = [], columns = [], onEdit, onDelete }) => {
     const [selectedStatus, setSelectedStatus] = useState({});
     const [actionMenuOpen, setActionMenuOpen] = useState(null);
     const actionMenuRef = useRef(null);
@@ -42,7 +42,7 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete, customStatu
                     <tr>
                         <th>Sr.no</th>
                         {columns.map((column, index) => (
-                            <th key={index}>{column.label}</th>
+                            <th key={index} data-align={column.align}>{column.label}</th>
                         ))}
                         <th>Action</th> {/* Ensure this is added only once */}
                     </tr>
@@ -53,11 +53,11 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete, customStatu
                             <tr key={index}>
                                 <td>{index + 1}</td>
                                 {columns.map((column, colIndex) => (
-                                    <td key={colIndex}>
+                                    <td key={colIndex} data-align={column.align}>
                                         {column.key === "status" ? (
                                             <Dropdown
                                                 label="Select Status"
-                                                options={customStatuses || statuses}
+                                                options={statuses}
                                                 selected={selectedStatus[index]}
                                                 setSelected={(status) =>
                                                     setSelectedStatus((prev) => ({ ...prev, [index]: status }))

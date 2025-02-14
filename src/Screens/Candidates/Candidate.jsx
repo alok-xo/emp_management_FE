@@ -43,7 +43,7 @@ const Candidate = () => {
                 <h2>Candidates</h2>
 
                 <div className="filter-section">
-                    <Dropdown label="Status" options={statuses} selected={status} setSelected={setStatus} />
+                    <Dropdown label="Status" options={statuses} selected={status === "All" ? "Status" : status} setSelected={setStatus} />
 
                     {/* Position dropdown now correctly displays "Positions" as default text */}
                     <Dropdown
@@ -54,7 +54,7 @@ const Candidate = () => {
                     />
 
                     <div className="search-box">
-                        <FaSearch className="search-icon" />
+                        {/* <FaSearch className="search-icon" /> */}
                         <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                     <button className="add-candidate-button" onClick={() => setIsModalOpen(true)}>Add Candidate</button>

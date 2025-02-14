@@ -27,12 +27,12 @@ const allAttendance = [
     },
 ];
 
-const statuses = ["All", "New", "Scheduled", "Ongoing", "Selected", "Rejected"];
+// const statuses = ["All", "New", "Scheduled", "Ongoing", "Selected", "Rejected"];
 
 const attendanceStatuses = ["Present", "Absent"]; // Define attendance-specific statuses
 
 const Attendance = () => {
-    const [status, setStatus] = useState("All");
+    const [status, setStatus] = useState("Status");
     const [position, setPosition] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,10 +40,11 @@ const Attendance = () => {
 
     const filteredAttendance = useMemo(() => {
         return allAttendance.filter((e) =>
+            (status === "Status" || e.status === status) &&
             (position === "All" || e.position === position) &&
             (e.name.toLowerCase().includes(searchQuery.toLowerCase()))
         );
-    }, [position, searchQuery]);
+    }, [status, position, searchQuery]);
 
     // Table Column Configuration
     const attendanceColumns = [
@@ -68,9 +69,9 @@ const Attendance = () => {
 
                 {/* Filters Section */}
                 <div className="filter-section">
-                    <Dropdown label="Status" options={statuses} selected={status} setSelected={setStatus} />
+                    <Dropdown label="Status" options={attendanceStatuses} selected={status} setSelected={setStatus} />
                     <div className="search-box">
-                        <FaSearch className="search-icon" />
+                        {/* <FaSearch className="search-icon" /> */}
                         <input
                             type="text"
                             placeholder="Search"

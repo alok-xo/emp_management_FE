@@ -57,7 +57,7 @@ const Employee = () => {
                     />
 
                     <div className="search-box">
-                        <FaSearch className="search-icon" />
+                        {/* <FaSearch className="search-icon" /> */}
                         <input
                             type="text"
                             placeholder="Search"
