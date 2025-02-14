@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../Css/Auth/Register.css";
 import { Link } from "react-router-dom";
 import InputField from "../../Components/Fields";
+import { register } from "../../API/Auth";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,13 +12,39 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+    if (value.length <= 20) {
+      setFormData(prevState => ({
+        ...prevState,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+
+    try {
+      const response = await register(formData);
+      setSuccessMessage('Registration successful! Redirecting...');
+      console.log('Registration successful:', response);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,7 +60,9 @@ const Register = () => {
 
       <div className="register-right">
         <h2>Welcome to Dashboard</h2>
-        <form className="register-form">
+        {error && <div className="error-message">{error}</div>}
+        {successMessage && <div className="success-message">{successMessage}</div>}
+        <form className="register-form" onSubmit={handleSubmit}>
           <InputField
             label="Full Name"
             type="text"
@@ -40,6 +70,7 @@ const Register = () => {
             value={formData.fullName}
             onChange={handleChange}
             required
+            maxLength={20}
           />
 
           <InputField
@@ -49,6 +80,7 @@ const Register = () => {
             value={formData.email}
             onChange={handleChange}
             required
+            maxLength={20}
           />
 
           <InputField
@@ -58,6 +90,7 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
             required
+            maxLength={20}
           />
 
           <InputField
@@ -67,9 +100,16 @@ const Register = () => {
             value={formData.confirmPassword}
             onChange={handleChange}
             required
+            maxLength={20}
           />
 
-          <button type="submit" className="register-button">Register</button>
+          <button
+            type="submit"
+            className="register-button"
+            disabled={loading}
+          >
+            {loading ? 'Registering...' : 'Register'}
+          </button>
         </form>
 
         <p className="login-link">

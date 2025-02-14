@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "../Css/sidebar.css";
 import { FaUsers, FaUserTie, FaChartBar, FaRegCalendarCheck, FaSignOutAlt, FaSearch, FaBars } from "react-icons/fa";
 import SearchBar from "../Components/SearchBar";
@@ -7,8 +7,10 @@ import Modal from "../Components/Modal";
 
 
 const Sidebar = () => {
+    const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
-    const [activeItem, setActiveItem] = useState("");
+    const [activeItem, setActiveItem] = useState(location.state?.fromLogin ? "candidates" : "");
+    const navigate = useNavigate();
 
     const handleItemClick = (item) => {
         setActiveItem(item);
@@ -79,7 +81,14 @@ const Sidebar = () => {
                 <div className="section-title">Others</div>
                 <ul className="sidebar-menu">
                     <li className="logout">
-                        <Link to="/logout" onClick={() => handleItemClick("logout")}>
+                        <Link 
+                            to="/login" 
+                            onClick={() => {
+                                localStorage.removeItem("accessToken");
+                                handleItemClick("logout");
+                                navigate("/login");
+                            }}
+                        >
                             <FaSignOutAlt className="icon logout-icon" /> Logout
                         </Link>
                     </li>

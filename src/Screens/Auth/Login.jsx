@@ -1,19 +1,44 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../../Css/Auth/login.css";
 import InputField from "../../Components/Fields"; // Import Reusable InputField Component
+import { login } from "../../API/Auth"; // Import the login function
 
 const Login = () => {
+    const navigate = useNavigate(); // Initialize useNavigate
     const [formData, setFormData] = useState({
         email: "",
         password: ""
     });
+    const [errorMessage, setErrorMessage] = useState(""); // New state for error message
+    const [successMessage, setSuccessMessage] = useState(""); // New state for success message
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        if (value.length <= 20) {
+            setFormData({
+                ...formData,
+                [name]: value
+            });
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Prevent default form submission
+        setErrorMessage(""); // Reset error message before submission
+        setSuccessMessage(""); // Reset success message before submission
+        try {
+            const data = await login(formData); // Call the login API
+            localStorage.setItem('accessToken', data.accessToken); // Save accessToken in local storage
+            setSuccessMessage("Login successful!"); // Set success message
+            console.log(data); // Handle successful login (e.g., redirect or show a message)
+            setTimeout(() => {
+                navigate('/candidates', { state: { fromLogin: true } });
+            }, 2000);
+        } catch (error) {
+            setErrorMessage(error.message || "Login failed. Please try again."); // Set error message
+            console.error(error); // Handle error (e.g., show an error message)
+        }
     };
 
     return (
@@ -35,7 +60,9 @@ const Login = () => {
                 {/* Right Side - Login Form */}
                 <div className="login-right">
                     <h2>Welcome to Dashboard</h2>
-                    <form>
+                    {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} {/* Display error message */}
+                    {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>} {/* Display success message */}
+                    <form onSubmit={handleSubmit}>
                         <InputField
                             label="Email Address"
                             type="email"
@@ -43,6 +70,7 @@ const Login = () => {
                             value={formData.email}
                             onChange={handleChange}
                             required
+                            maxLength={20}
                         />
 
                         <InputField
@@ -52,6 +80,7 @@ const Login = () => {
                             value={formData.password}
                             onChange={handleChange}
                             required
+                            maxLength={20}
                         />
 
                         <div className="forgot-password">
