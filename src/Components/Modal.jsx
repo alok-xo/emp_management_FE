@@ -16,8 +16,8 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false, onSu
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
-    // Add position options
-    const positionOptions = ["intern", "fulltime", "junior", "senior", "teamlead"];
+    // Remove position options
+    // const positionOptions = ["intern", "fulltime", "junior", "senior", "teamlead"];
 
     // Populate form fields when editing a candidate or employee
     useEffect(() => {
@@ -159,23 +159,14 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false, onSu
                             onChange={handleChange}
                             required
                         />
-                        <div className="input-field">
-                            <label>Position*</label>
-                            <select
-                                name="position"
-                                value={formData.position}
-                                onChange={handleChange}
-                                required
-                                className="input-select"
-                            >
-                                <option value="">Select Position</option>
-                                {positionOptions.map((pos) => (
-                                    <option key={pos} value={pos}>
-                                        {pos.charAt(0).toUpperCase() + pos.slice(1)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <InputField
+                            label="Position"
+                            type="text"
+                            name="position"
+                            value={formData.position}
+                            onChange={handleChange}
+                            required
+                        />
                     </div>
 
                     {/* Only Show for Candidates */}
@@ -229,9 +220,7 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false, onSu
 
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <input type="checkbox" required />
-                        <label style={{ marginLeft: "8px" }}>
-                            I hereby declare that the above information is true to the best of my knowledge and belief
-                        </label>
+                        <label>I hereby declare that the above information is true to the best of my knowledge and belief</label>
                     </div>
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <button type="submit" className="save-button">

@@ -99,7 +99,7 @@ const Candidate = () => {
                 throw new Error("Candidate ID is required for deletion.");
             }
             await deleteCandidate(candidate.id); // Call the delete function with candidate ID
-            fetchCandidates(); // Refresh candidates list after deletion
+            // fetchCandidates(); // Refresh candidates list after deletion
         } catch (error) {
             console.error('Error deleting candidate:', error);
             // Add error notification here
