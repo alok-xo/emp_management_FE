@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from "react";
 import { TableComponent } from "../Components/Tables"; // Reusable table component
-import { FaChevronDown, FaSearch } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import "../Css/employee.css";
 import { ThemeProvider } from "../Components/Layout/ThemeContext";
 import Modal from "../Components/Modal";
+import Dropdown from "../Components/Dropdown"; // Import Dropdown component
 
 // Mock Employee Data
 const allEmployees = [
@@ -47,6 +48,14 @@ const Employee = () => {
 
                 {/* Filters Section */}
                 <div className="filter-section">
+                    {/* Position dropdown now correctly displays "Positions" as default text */}
+                    <Dropdown
+                        label="Positions"
+                        options={positions}
+                        selected={position === "All" ? "Positions" : position}
+                        setSelected={setPosition}
+                    />
+
                     <div className="search-box">
                         <FaSearch className="search-icon" />
                         <input

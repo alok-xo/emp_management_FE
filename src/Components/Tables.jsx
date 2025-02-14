@@ -1,44 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../Css/table.css";
-import { FaEllipsisV, FaChevronDown } from "react-icons/fa"; // Icons
+import { FaEllipsisV } from "react-icons/fa";
+import Dropdown from "../Components/Dropdown"; // Import the dropdown component
 
 const statuses = ["New", "Scheduled", "Ongoing", "Selected", "Rejected"];
 
-const TableComponent = ({ data = [], columns = [], onEdit }) => {
-    const [selectedStatus, setSelectedStatus] = useState(
-        data.reduce((acc, item, index) => {
-            acc[index] = item.status || "";
+const TableComponent = ({ data = [], columns = [], onEdit, onDelete, customStatuses }) => {
+    const [selectedStatus, setSelectedStatus] = useState({});
+    const [actionMenuOpen, setActionMenuOpen] = useState(null);
+    const actionMenuRef = useRef(null);
+
+    useEffect(() => {
+        const initialStatus = data.reduce((acc, item, index) => {
+            acc[index] = item.status || "Select Status";
             return acc;
-        }, {})
-    );
+        }, {});
+        setSelectedStatus(initialStatus);
+    }, [data]);
 
-    const [dropdownOpen, setDropdownOpen] = useState(null); // Track open dropdown
-    const [actionMenuOpen, setActionMenuOpen] = useState(null); // Track action menu
-    const actionMenuRef = useRef(null); // Ref to detect clicks outside
-
-    const toggleDropdown = (index) => {
-        setDropdownOpen(dropdownOpen === index ? null : index);
-    };
-
+    // Toggle Action Menu
     const toggleActionMenu = (index, event) => {
-        event.stopPropagation(); // Prevent event bubbling
+        event.stopPropagation();
         setActionMenuOpen(actionMenuOpen === index ? null : index);
     };
 
-    const updateStatus = (index, status) => {
-        setSelectedStatus({ ...selectedStatus, [index]: status });
-        setDropdownOpen(null); // Close dropdown after selection
-    };
-
-    // Close action menu when clicking outside
+    // Close menus when clicking outside
     useEffect(() => {
-        const closeMenu = (event) => {
+        const handleClickOutside = (event) => {
             if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
                 setActionMenuOpen(null);
             }
         };
-        document.addEventListener("click", closeMenu);
-        return () => document.removeEventListener("click", closeMenu);
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
     return (
@@ -50,7 +44,7 @@ const TableComponent = ({ data = [], columns = [], onEdit }) => {
                         {columns.map((column, index) => (
                             <th key={index}>{column.label}</th>
                         ))}
-                        <th>Action</th>
+                        <th>Action</th> {/* Ensure this is added only once */}
                     </tr>
                 </thead>
                 <tbody>
@@ -61,40 +55,27 @@ const TableComponent = ({ data = [], columns = [], onEdit }) => {
                                 {columns.map((column, colIndex) => (
                                     <td key={colIndex}>
                                         {column.key === "status" ? (
-                                            <div className="status-dropdown">
-                                                <button
-                                                    className="dropdown-button"
-                                                    onClick={() => toggleDropdown(index)}
-                                                >
-                                                    {selectedStatus[index] || "Select Status"} <FaChevronDown />
-                                                </button>
-                                                {dropdownOpen === index && (
-                                                    <ul className="dropdown-menu">
-                                                        {statuses.map((status) => (
-                                                            <li key={status} onClick={() => updateStatus(index, status)}>
-                                                                {status}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
+                                            <Dropdown
+                                                label="Select Status"
+                                                options={customStatuses || statuses}
+                                                selected={selectedStatus[index]}
+                                                setSelected={(status) =>
+                                                    setSelectedStatus((prev) => ({ ...prev, [index]: status }))
+                                                }
+                                            />
                                         ) : (
                                             item[column.key]
                                         )}
                                     </td>
                                 ))}
-
-                                {/* Action Menu (Edit/Delete) */}
+                                {/* Action Column (Only One) */}
                                 <td className="action-cell">
                                     <div className="action-menu" ref={actionMenuRef}>
-                                        <FaEllipsisV
-                                            className="action-icon"
-                                            onClick={(event) => toggleActionMenu(index, event)}
-                                        />
+                                        <FaEllipsisV className="action-icon" onClick={(event) => toggleActionMenu(index, event)} />
                                         {actionMenuOpen === index && (
                                             <ul className="action-dropdown">
                                                 <li onClick={() => onEdit(item)}>Edit</li>
-                                                <li onClick={() => console.log("Delete clicked for", item)}>Delete</li>
+                                                <li onClick={() => onDelete(item)}>Delete</li>
                                             </ul>
                                         )}
                                     </div>
