@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../Css/modal.css"; // Ensure you have this CSS file
 import InputField from "./Fields"; // Import the InputField component
 
-const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false }) => {
+const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false, onSubmit }) => {
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -13,6 +13,8 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false }) =>
         department: "", // Only for Employees
         dateOfJoining: "", // Only for Employees
     });
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     // Populate form fields when editing a candidate or employee
     useEffect(() => {
@@ -49,10 +51,49 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false }) =>
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form Submitted:", formData);
-        onClose();
+
+        // Create FormData object with the correct field names matching the API
+        const submitData = new FormData();
+        submitData.append('fullName', formData.fullName);
+        submitData.append('email', formData.email);
+        submitData.append('phoneNumber', formData.phone);
+        submitData.append('position', formData.position);
+        submitData.append('experience', formData.experience);
+        submitData.append('status', 'new');
+
+        if (formData.resume) {
+            submitData.append('resume', formData.resume);
+        }
+
+        try {
+            await onSubmit(submitData);
+            setSuccessMessage("Submission successful!");
+            setErrorMessage(""); // Clear any previous error message
+
+            // Clear the form data
+            setFormData({
+                fullName: "",
+                email: "",
+                phone: "",
+                position: "",
+                experience: "",
+                resume: "",
+                department: "",
+                dateOfJoining: "",
+            });
+
+            // Wait for 2 seconds before closing modal and reloading
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            onClose(); // Close the modal
+            window.location.reload(); // Reload the page
+
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            setErrorMessage("Error submitting form. Please try again.");
+            setSuccessMessage(""); // Clear any previous success message
+        }
     };
 
     if (!isOpen) return null;
@@ -60,6 +101,29 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false }) =>
     return (
         <div className="modal-overlay">
             <div className="modal-content">
+                {/* Update success/error message styling */}
+                {successMessage && (
+                    <div className="message success" style={{
+                        color: "#155724",
+                        backgroundColor: "#d4edda",
+                        padding: "10px",
+                        borderRadius: "4px",
+                        marginBottom: "10px"
+                    }}>
+                        {successMessage}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div className="message error" style={{
+                        color: "#721c24",
+                        backgroundColor: "#f8d7da",
+                        padding: "10px",
+                        borderRadius: "4px",
+                        marginBottom: "10px"
+                    }}>
+                        {errorMessage}
+                    </div>
+                )}
                 <div className="modal-header">
                     <p>{employeeData ? "Edit Employee" : "Add New Candidate"}</p>
                     <button className="close-button" onClick={onClose}>&times;</button>
@@ -151,6 +215,12 @@ const Modal = ({ isOpen, onClose, employeeData = null, isCandidate = false }) =>
                         </div>
                     )} */}
 
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <input type="checkbox" required />
+                        <label style={{ marginLeft: "8px" }}>
+                            I hereby declare that the above information is true to the best of my knowledge and belief
+                        </label>
+                    </div>
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <button type="submit" className="save-button">
                             {employeeData ? "Update" : "Save"}

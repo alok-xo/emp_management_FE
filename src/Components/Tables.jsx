@@ -5,7 +5,7 @@ import Dropdown from "../Components/Dropdown"; // Import the dropdown component
 
 const statuses = ["New", "Scheduled", "Ongoing", "Selected", "Rejected"];
 
-const TableComponent = ({ data = [], columns = [], onEdit, onDelete }) => {
+const TableComponent = ({ data = [], columns = [], onEdit, onDelete, onStatusChange }) => {
     const [selectedStatus, setSelectedStatus] = useState({});
     const [actionMenuOpen, setActionMenuOpen] = useState(null);
     const actionMenuRef = useRef(null);
@@ -17,6 +17,13 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete }) => {
         }, {});
         setSelectedStatus(initialStatus);
     }, [data]);
+
+    const handleStatusChange = async (index, status, item) => {
+        setSelectedStatus((prev) => ({ ...prev, [index]: status }));
+        if (onStatusChange) {
+            await onStatusChange(item.email, status);
+        }
+    };
 
     // Toggle Action Menu
     const toggleActionMenu = (index, event) => {
@@ -59,9 +66,7 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete }) => {
                                                 label="Select Status"
                                                 options={statuses}
                                                 selected={selectedStatus[index]}
-                                                setSelected={(status) =>
-                                                    setSelectedStatus((prev) => ({ ...prev, [index]: status }))
-                                                }
+                                                setSelected={(status) => handleStatusChange(index, status, item)}
                                             />
                                         ) : (
                                             item[column.key]
