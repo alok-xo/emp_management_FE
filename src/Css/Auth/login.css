@@ -120,7 +120,7 @@
     position: absolute;
     right: 12px;
     cursor: pointer;
-    color: #6a0dad;
+    /* color: #6a0dad; */
     font-size: 18px;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .forgot-password a {
-    color: #6a0dad;
+    /* color: #6a0dad; */
     font-size: 14px;
     text-decoration: none;
 }
@@ -166,7 +166,7 @@
 }
 
 .register-link a {
-    color: #6a0dad;
+    /* color: #6a0dad; */
     font-weight: bold;
     text-decoration: none;
 }

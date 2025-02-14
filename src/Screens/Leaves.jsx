@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar'; // Import react-calendar
 import 'react-calendar/dist/Calendar.css'; // Import default styles
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
@@ -7,6 +7,7 @@ import '../Css/leaves.css';
 const Leaves = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [status, setStatus] = useState("Status"); // Default label for the status dropdown
+    const [employees, setEmployees] = useState([]); // New state for employees
     const [leaves, setLeaves] = useState([
         {
             id: 1,
@@ -46,6 +47,44 @@ const Leaves = () => {
     // Add new state for modal
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Add new state for leave form inputs
+    const [employeeName, setEmployeeName] = useState('');
+    const [designation, setDesignation] = useState('');
+    const [leaveDate, setLeaveDate] = useState('');
+    const [document, setDocument] = useState('');
+    const [reason, setReason] = useState('');
+
+    // Add useEffect for API call
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                const accessToken = localStorage.getItem('accessToken');
+                const response = await fetch('http://localhost:8000/submission/employees/present', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    setEmployees(data.employees.map(employee => ({
+                        _id: employee._id,
+                        fullName: employee.fullName,
+                        position: employee.position,
+                        createdAt: employee.createdAt,
+                        status: employee.status,
+                        resume: employee.resume
+                    })));
+                }
+            } catch (error) {
+                console.error('Error fetching employees:', error);
+            }
+        };
+
+        fetchEmployees();
+    }, []);
+
     // Function to toggle dropdown visibility
     const toggleDropdown = (id = 'main') => {
         if (id === 'main') {
@@ -61,8 +100,8 @@ const Leaves = () => {
     };
 
     // Filter leaves based on selected status
-    const filteredLeaves = status === "Status" 
-        ? leaves 
+    const filteredLeaves = status === "Status"
+        ? leaves
         : leaves.filter(leave => leave.status === status);
 
     // Move to Previous Month
@@ -78,6 +117,40 @@ const Leaves = () => {
     // Function to handle modal open/close
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
+    };
+
+    // Function to handle leave request submission
+    const handleAddLeaveRequest = async () => {
+        const accessToken = localStorage.getItem('accessToken');
+        const leaveRequest = {
+            employeeName,
+            designation,
+            leaveDate,
+            document,
+            reason
+        };
+
+        try {
+            const response = await fetch('http://localhost:8000/leave/addLeaveRequest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify(leaveRequest)
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Handle success (e.g., close modal, reset form, show success message)
+                toggleModal();
+                // Optionally, refresh leaves or show a success message
+            } else {
+                // Handle error (e.g., show error message)
+                console.error('Error adding leave request:', data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
     return (
@@ -125,58 +198,32 @@ const Leaves = () => {
                         <table className="leaves-table">
                             <thead>
                                 <tr>
-                                    {/* <th>Profile</th> */}
                                     <th>Name</th>
+                                    <th>Position</th>
                                     <th>Date</th>
                                     <th>Reason</th>
                                     <th>Status</th>
-                                    <th>Docs</th>
+                                    <th>Documents</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredLeaves.map((leave) => (
-                                    <tr key={leave.id}>
-                                        {/* <td>{leave.position}</td> */}
-                                        <td>{leave.name}</td>
-                                        <td>{leave.date}</td>
-                                        <td>{leave.reason}</td>
+                                {employees.map((employee) => (
+                                    <tr key={employee._id}>
+                                        <td>{employee.fullName}</td>
+                                        <td>{employee.position}</td>
+                                        <td>{new Date(employee.createdAt).toLocaleDateString()}</td>
+                                        <td>-</td>
+                                        <td>{employee.status}</td>
                                         <td>
-                                            <div className="custom-dropdown table-dropdown">
-                                                <button className="dropdown-button" onClick={() => toggleDropdown(leave.id)}>
-                                                    {leave.status}
-                                                </button>
-                                                {rowDropdowns[leave.id] && (
-                                                    <div className="dropdown-content">
-                                                        {statusOptions.slice(1).map((option) => (
-                                                            <div
-                                                                key={option}
-                                                                className="dropdown-option"
-                                                                onClick={() => {
-                                                                    setLeaves(leaves.map(l => 
-                                                                        l.id === leave.id ? { ...l, status: option } : l
-                                                                    ));
-                                                                    toggleDropdown(leave.id);
-                                                                }}
-                                                            >
-                                                                {option}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {leave.hasDoc && (
-                                                <span className="doc-icon">📄</span>
-                                            )}
+                                            {employee.resume ? <p>View Doc</p> : 'No Doc'}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {filteredLeaves.length === 0 && (
+                        {employees.length === 0 && (
                             <div className="empty-state">
-                                <p>No leaves found for the selected status</p>
+                                <p>No employees found</p>
                             </div>
                         )}
                     </div>
@@ -216,45 +263,57 @@ const Leaves = () => {
                         <div className="modal-body">
                             <div className="form-row">
                                 <div className="form-group">
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder="Search Employee Name"
                                         className="form-input"
+                                        value={employeeName}
+                                        onChange={(e) => setEmployeeName(e.target.value)}
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder="Designation*"
                                         className="form-input"
+                                        value={designation}
+                                        onChange={(e) => setDesignation(e.target.value)}
                                     />
                                 </div>
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <input 
-                                        type="date" 
+                                    <input
+                                        type="date"
                                         placeholder="Leave Date*"
                                         className="form-input"
+                                        value={leaveDate}
+                                        onChange={(e) => setLeaveDate(e.target.value)}
                                     />
                                 </div>
                                 <div className="form-group">
                                     <div className="document-upload">
                                         <span>Documents</span>
-                                        <button className="upload-btn">
-                                            <span>↑</span>
-                                        </button>
+                                        <input
+                                            type="text"
+                                            placeholder="Document URL"
+                                            className="form-input"
+                                            value={document}
+                                            onChange={(e) => setDocument(e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div className="form-group">
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="Reason*"
                                     className="form-input"
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
                                 />
                             </div>
-                            <button className="save-btn">Save</button>
+                            <button className="save-btn" onClick={handleAddLeaveRequest}>Save</button>
                         </div>
                     </div>
                 </div>
