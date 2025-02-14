@@ -1,39 +1,69 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { TableComponent } from "../Components/Tables"; // Reusable table component
 import { FaSearch } from "react-icons/fa";
 import "../Css/employee.css";
 import { ThemeProvider } from "../Components/Layout/ThemeContext";
 import Modal from "../Components/Modal";
 import Dropdown from "../Components/Dropdown"; // Import Dropdown component
+import { employeeAPI } from '../API/Employee';
 
-// Mock Employee Data
-const allEmployees = [
-    { name: "Bob Smith", email: "bob.smith@example.com", phone: "987-654-3210", position: "Software Engineer", department: "IT", dateOfJoining: "2020-06-20" },
-];
+// Remove the mock data
+// const allEmployees = [ ... ];
 
-const positions = ["All", "HR Manager", "Software Engineer", "Designer", "Product Manager", "Sales Executive"];
+const positions = ["All", "intern", "Software Engineer", "Designer", "Product Manager", "Sales Executive"];
 
 const Employee = () => {
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [position, setPosition] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
 
+    // Add useEffect to fetch employees
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                setLoading(true);
+                const response = await employeeAPI.getAllEmployees();
+                // Map the employees to match our table structure
+                const formattedEmployees = response.employees.map(emp => ({
+                    ...emp,
+                    // Format date if needed
+                    createdAt: new Date(emp.createdAt).toLocaleDateString()
+                }));
+                setEmployees(formattedEmployees);
+                setError(null);
+            } catch (err) {
+                setError('Failed to fetch employees');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEmployees();
+    }, []);
+
     const filteredEmployees = useMemo(() => {
-        return allEmployees.filter((e) =>
+        return employees.filter((e) =>
+            (e.status.toLowerCase() === "selected") && // Only show Selected employees (case-insensitive)
             (position === "All" || e.position === position) &&
-            (e.name.toLowerCase().includes(searchQuery.toLowerCase()) || e.email.toLowerCase().includes(searchQuery.toLowerCase()))
+            (e.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                e.email.toLowerCase().includes(searchQuery.toLowerCase()))
         );
-    }, [position, searchQuery]);
+    }, [position, searchQuery, employees]);
 
     // Table Column Configuration
     const employeeColumns = [
-        { label: "Employee Name", key: "name" },
+        { label: "Employee Name", key: "fullName" },
         { label: "Email", key: "email" },
-        { label: "Phone", key: "phone" },
+        { label: "Phone", key: "phoneNumber" },
         { label: "Position", key: "position" },
-        { label: "Department", key: "department" },
-        { label: "Date of Joining", key: "dateOfJoining" },
+        { label: "Experience", key: "experience" },
+        { label: "Status", key: "status" },
+        { label: "Joining Date", key: "createdAt" },
     ];
 
     const handleEdit = (employee) => {
@@ -41,10 +71,18 @@ const Employee = () => {
         setIsModalOpen(true);
     };
 
+    const handleStatusChange = (employee) => {
+        // Implementation of handleStatusChange function
+    };
+
     return (
         <ThemeProvider>
             <div className="employee-container">
                 <h2>Employees</h2>
+
+                {/* Add loading and error states */}
+                {loading && <div className="loading">Loading employees...</div>}
+                {error && <div className="error">{error}</div>}
 
                 {/* Filters Section */}
                 <div className="filter-section">
@@ -67,7 +105,14 @@ const Employee = () => {
                     </div>
                 </div>
 
-                <TableComponent data={filteredEmployees} columns={employeeColumns} onEdit={handleEdit} />
+                {!loading && !error && (
+                    <TableComponent
+                        data={filteredEmployees}
+                        columns={employeeColumns}
+                        onEdit={handleEdit}
+                        onStatusChange={handleStatusChange}
+                    />
+                )}
 
                 {/* Employee Modal (Add/Edit) */}
                 <Modal
