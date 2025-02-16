@@ -1,16 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { TableComponent } from "../Components/Tables"; // Reusable table component
+import { TableComponent } from "../Components/Tables"; 
 import { FaSearch } from "react-icons/fa";
 import "../Css/employee.css";
 import { ThemeProvider } from "../Components/Layout/ThemeContext";
 import Modal from "../Components/Modal";
-import Dropdown from "../Components/Dropdown"; // Import Dropdown component
+import Dropdown from "../Components/Dropdown"; 
 import { employeeAPI } from '../API/Employee';
 
-// Remove the mock data
-// const allEmployees = [ ... ];
 
-const positions = ["All", "intern", "Software Engineer", "Designer", "Product Manager", "Sales Executive"];
+
+const positions = ["All", "intern", "fulltime", "junior", "senior", "teamlead"];
 
 const Employee = () => {
     const [employees, setEmployees] = useState([]);
@@ -20,17 +19,15 @@ const Employee = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
+    const [dropdowns, setDropdowns] = useState({});
 
-    // Add useEffect to fetch employees
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
                 setLoading(true);
                 const response = await employeeAPI.getAllEmployees();
-                // Map the employees to match our table structure
                 const formattedEmployees = response.employees.map(emp => ({
                     ...emp,
-                    // Format date if needed
                     createdAt: new Date(emp.createdAt).toLocaleDateString()
                 }));
                 setEmployees(formattedEmployees);
@@ -48,7 +45,7 @@ const Employee = () => {
 
     const filteredEmployees = useMemo(() => {
         return employees.filter((e) =>
-            (e.status.toLowerCase() === "selected") && // Only show Selected employees (case-insensitive)
+            (e.status.toLowerCase() === "selected") && 
             (position === "All" || e.position === position) &&
             (e.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 e.email.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -64,6 +61,15 @@ const Employee = () => {
         { label: "Experience", key: "experience" },
         { label: "Status", key: "status" },
         { label: "Joining Date", key: "createdAt" },
+        {
+            label: "Actions",
+            key: "actions",
+            render: (employee) => (
+                <button className="delete-btn" onClick={() => handleDelete(employee._id)}>
+                    🗑 Delete
+                </button>
+            ),
+        },
     ];
 
     const handleEdit = (employee) => {
@@ -72,21 +78,48 @@ const Employee = () => {
     };
 
     const handleStatusChange = (employee) => {
-        // Implementation of handleStatusChange function
     };
+
+    const handleDelete = async (employeeId) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this employee?");
+        if (!confirmDelete) return;
+
+        try {
+            const accessToken = localStorage.getItem("accessToken");
+            const response = await fetch(`${server}/submission/delete_employee/${employeeId}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Employee deleted successfully!");
+                console.log("hiiiiiiiiiiiii");
+                
+                window.location.reload();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error("Error deleting employee:", error);
+            alert("Failed to delete employee.");
+        }
+    };
+
+
 
     return (
         <ThemeProvider>
             <div className="employee-container">
                 <h2>Employees</h2>
 
-                {/* Add loading and error states */}
                 {loading && <div className="loading">Loading employees...</div>}
                 {error && <div className="error">{error}</div>}
 
-                {/* Filters Section */}
                 <div className="filter-section">
-                    {/* Position dropdown now correctly displays "Positions" as default text */}
                     <Dropdown
                         label="Positions"
                         options={positions}
@@ -95,7 +128,6 @@ const Employee = () => {
                     />
 
                     <div className="search-box">
-                        {/* <FaSearch className="search-icon" /> */}
                         <input
                             type="text"
                             placeholder="Search"
@@ -114,12 +146,11 @@ const Employee = () => {
                     />
                 )}
 
-                {/* Employee Modal (Add/Edit) */}
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     employeeData={editingEmployee}
-                    isCandidate={false} // Ensures only Employee-specific fields are shown
+                    isCandidate={false} 
                 />
             </div>
         </ThemeProvider>

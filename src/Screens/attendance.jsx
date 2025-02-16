@@ -20,13 +20,11 @@ const Attendance = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
 
-    // Fetch Employees from API
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
                 setLoading(true);
                 const response = await employeeAPI.getAllEmployees();
-                // Format employees to match table structure
                 const formattedEmployees = response.employees.map(emp => ({
                     ...emp,
                     createdAt: new Date(emp.createdAt).toLocaleDateString(),
@@ -55,7 +53,6 @@ const Attendance = () => {
     }, [status, position, searchQuery, employees]);
 
 
-    // Table Column Configuration
     const attendanceColumns = [
         { label: "Employee Name", key: "fullName" },
         { label: "Email", key: "email" },
@@ -88,14 +85,11 @@ const Attendance = () => {
             <div className="attendance-container">
                 <h2>Attendance</h2>
 
-                {/* Loading and Error Handling */}
                 {loading && <div className="loading">Loading employees...</div>}
                 {error && <div className="error">{error}</div>}
 
-                {/* Filters Section */}
                 <div className="filter-section">
                     <Dropdown label="Status" options={attendanceStatuses} selected={status} setSelected={setStatus} />
-                    {/* <Dropdown label="Position" options={positions} selected={position} setSelected={setPosition} /> */}
                     <div className="search-box">
                         <input
                             type="text"

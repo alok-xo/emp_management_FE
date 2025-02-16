@@ -3,6 +3,10 @@ import Calendar from 'react-calendar'; // Import react-calendar
 import 'react-calendar/dist/Calendar.css'; // Import default styles
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import '../Css/leaves.css';
+import { server } from '../API/Server';
+import { FaFileDownload } from "react-icons/fa"; // Import the icon
+import axios from 'axios';
+
 
 const Leaves = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -53,13 +57,58 @@ const Leaves = () => {
     const [leaveDate, setLeaveDate] = useState('');
     const [document, setDocument] = useState('');
     const [reason, setReason] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [leaveDates, setLeaveDates] = useState([]);
+    const [approvedLeaves, setApprovedLeaves] = useState([]);
 
-    // Add useEffect for API call
+    const searchEmployees = async (name) => {
+        if (!name) {
+            setSearchResults([]);
+            setShowDropdown(false);
+            return;
+        }
+
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            const response = await axios.get(`${server}/leave/getEmployeesByName?name=${name}`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+
+            if (response.data.success && response.data.data.length > 0) {
+                setSearchResults(response.data.data); // Store employees list
+                setShowDropdown(true); // Show dropdown
+            } else {
+                setSearchResults([]);
+                setShowDropdown(false);
+            }
+        } catch (error) {
+            console.error("Error fetching employees:", error);
+        }
+    };
+
+    const handleEmployeeSelect = (employee) => {
+        setEmployeeName(employee.fullName);
+        setDesignation(employee.position); // Auto-fill designation
+        setShowDropdown(false); // Hide dropdown after selection
+    };
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            searchEmployees(employeeName);
+        }, 300); // Debounce time to avoid excessive API calls
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [employeeName]);
+
+
+
+
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
                 const accessToken = localStorage.getItem('accessToken');
-                const response = await fetch('http://localhost:8000/submission/employees/present', {
+                const response = await fetch(`${server}/leave/getFilteredLeaves`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'Content-Type': 'application/json'
@@ -68,14 +117,20 @@ const Leaves = () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    setEmployees(data.employees.map(employee => ({
+                    const formattedEmployees = data.data.map(employee => ({
                         _id: employee._id,
-                        fullName: employee.fullName,
-                        position: employee.position,
-                        createdAt: employee.createdAt,
+                        employeeName: employee.employeeName, // Correct key from API
+                        designation: employee.designation,
+                        leaveDate: new Date(employee.leaveDate).toLocaleDateString('en-GB'), // Convert to DD-MM-YYYY
+                        reason: employee.reason,
                         status: employee.status,
-                        resume: employee.resume
-                    })));
+                        document: employee.document ? `${server}/${employee.document}` : null
+                    }));
+
+                    setEmployees(formattedEmployees);
+
+                    // Filter approved leaves
+                    setApprovedLeaves(formattedEmployees.filter(emp => emp.status === "leaveApproved"));
                 }
             } catch (error) {
                 console.error('Error fetching employees:', error);
@@ -84,6 +139,7 @@ const Leaves = () => {
 
         fetchEmployees();
     }, []);
+
 
     // Function to toggle dropdown visibility
     const toggleDropdown = (id = 'main') => {
@@ -122,36 +178,102 @@ const Leaves = () => {
     // Function to handle leave request submission
     const handleAddLeaveRequest = async () => {
         const accessToken = localStorage.getItem('accessToken');
-        const leaveRequest = {
-            employeeName,
-            designation,
-            leaveDate,
-            document,
-            reason
-        };
+
+        // Create FormData object
+        const formData = new FormData();
+        formData.append('employeeName', employeeName);
+        formData.append('designation', designation);
+        formData.append('leaveDate', leaveDate);
+        formData.append('reason', reason);
+
+        // Only append document if it's selected
+        if (document) {
+            formData.append('document', document);
+        }
 
         try {
-            const response = await fetch('http://localhost:8000/leave/addLeaveRequest', {
+            const response = await fetch(`${server}/leave/addLeaveRequest`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
+                    'Authorization': `Bearer ${accessToken}` // No 'Content-Type', as browser auto-sets it
                 },
-                body: JSON.stringify(leaveRequest)
+                body: formData
             });
+
             const data = await response.json();
             if (data.success) {
-                // Handle success (e.g., close modal, reset form, show success message)
                 toggleModal();
-                // Optionally, refresh leaves or show a success message
+                window.location.reload(); // Refresh the page after successful submission
             } else {
-                // Handle error (e.g., show error message)
                 console.error('Error adding leave request:', data.message);
             }
         } catch (error) {
             console.error('Error:', error);
         }
     };
+
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+
+            // Convert selected status to match the API format (leaveApproved, leaveRejected)
+            let formattedStatus = "";
+            if (newStatus === "Approve") formattedStatus = "leaveApproved";
+            else if (newStatus === "Reject") formattedStatus = "leaveRejected";
+            else formattedStatus = "leaveCreated"; // Default for pending
+
+            // Update the UI first to reflect the change instantly
+            setEmployees(prevEmployees =>
+                prevEmployees.map(employee =>
+                    employee._id === id ? { ...employee, status: formattedStatus } : employee
+                )
+            );
+
+            // Make the API request
+            await axios.put(
+                `${server}/leave/update_status/${id}`,
+                { status: formattedStatus },
+                { headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
+            );
+
+            setTimeout(() => {
+                fetchEmployees();
+            }, 500);
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
+    };
+
+    useEffect(() => {
+        const fetchEmployeesOnLeave = async () => {
+            try {
+                const accessToken = localStorage.getItem('accessToken');
+                const response = await fetch(`${server}/leave/employees_on_leave`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const dates = data.data.map(emp => {
+                        const leaveDate = new Date(emp.leaveDate);
+                        leaveDate.setMinutes(leaveDate.getMinutes() - leaveDate.getTimezoneOffset()); // Fix UTC shift
+                        return leaveDate.toISOString().split('T')[0]; // Format to YYYY-MM-DD
+                    });
+
+                    setLeaveDates(dates);
+                }
+            } catch (error) {
+                console.error('Error fetching employees on leave:', error);
+            }
+        };
+
+        fetchEmployeesOnLeave();
+    }, []);
 
     return (
         <div className="leaves-container">
@@ -209,13 +331,32 @@ const Leaves = () => {
                             <tbody>
                                 {employees.map((employee) => (
                                     <tr key={employee._id}>
-                                        <td>{employee.fullName}</td>
-                                        <td>{employee.position}</td>
-                                        <td>{new Date(employee.createdAt).toLocaleDateString()}</td>
-                                        <td>-</td>
-                                        <td>{employee.status}</td>
+                                        <td>{employee.employeeName}</td>
+                                        <td>{employee.designation}</td>
+                                        <td>{employee.leaveDate}</td>
+                                        <td>{employee.reason}</td>
                                         <td>
-                                            {employee.resume ? <p>View Doc</p> : 'No Doc'}
+                                            <select
+                                                style={{ borderRadius: "2rem" }}
+                                                value={
+                                                    employee.status === "leaveApproved" ? "Approve" :
+                                                        employee.status === "leaveRejected" ? "Reject" : "Pending"
+                                                }
+                                                onChange={(e) => handleStatusChange(employee._id, e.target.value)}
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Approve">Approve</option>
+                                                <option value="Reject">Reject</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            {employee.document ? (
+                                                <a style={{ marginLeft: "40px" }} href={employee.document} target="_blank" rel="noopener noreferrer" className="doc-link">
+                                                    <FaFileDownload style={{ color: "#fff" }} className="doc-icon" />
+                                                </a>
+                                            ) : (
+                                                <span>No Doc</span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -233,11 +374,11 @@ const Leaves = () => {
                 <div className="leave-calendar">
                     <div className="calendar-header">
                         <h2>Leave Calendar</h2>
-                        <div className="month-navigator">
+                        {/* <div className="month-navigator">
                             <FaChevronLeft className="nav-icon" onClick={prevMonth} />
                             <span>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
                             <FaChevronRight className="nav-icon" onClick={nextMonth} />
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Calendar Component */}
@@ -245,10 +386,29 @@ const Leaves = () => {
                         className="custom-calendar"
                         onChange={setCurrentDate}
                         value={currentDate}
+                        tileClassName={({ date, view }) => {
+                            if (view === 'month') {
+                                const formattedDate = new Date(date);
+                                formattedDate.setMinutes(formattedDate.getMinutes() - formattedDate.getTimezoneOffset()); // Fix UTC shift
+                                const dateString = formattedDate.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
+                                return leaveDates.includes(dateString) ? "leave-highlight" : null;
+                            }
+                        }}
                     />
-                    <div className="calendar-footer">
-                        <p>Approved Leaves</p>
-                    </div>
+                    {approvedLeaves.length > 0 && (
+                        <div className="approved-leaves-container">
+                            <h3 className="approved-leaves-title">Approved Leaves</h3>
+                            {approvedLeaves.map((leave) => (
+                                <div key={leave._id} className="approved-leave-card">
+                                    <div className="approved-leave-details">
+                                        <strong className="employee-name">{leave.employeeName}</strong>
+                                        <p className="designation">{leave.designation}</p>
+                                    </div>
+                                    <span className="leave-date">{leave.leaveDate}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -262,7 +422,7 @@ const Leaves = () => {
                         </div>
                         <div className="modal-body">
                             <div className="form-row">
-                                <div className="form-group">
+                                <div className="form-group" style={{ position: "relative" }}>
                                     <input
                                         type="text"
                                         placeholder="Search Employee Name"
@@ -270,14 +430,30 @@ const Leaves = () => {
                                         value={employeeName}
                                         onChange={(e) => setEmployeeName(e.target.value)}
                                     />
+
+                                    {/* Employee Search Dropdown */}
+                                    {showDropdown && searchResults.length > 0 && (
+                                        <ul className="dropdown-menu">
+                                            {searchResults.map((employee) => (
+                                                <li
+                                                    key={employee._id}
+                                                    onClick={() => handleEmployeeSelect(employee)}
+                                                    className="dropdown-item"
+                                                >
+                                                    {employee.fullName}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
+
                                 <div className="form-group">
                                     <input
                                         type="text"
                                         placeholder="Designation*"
                                         className="form-input"
                                         value={designation}
-                                        onChange={(e) => setDesignation(e.target.value)}
+                                        readOnly
                                     />
                                 </div>
                             </div>
@@ -293,19 +469,21 @@ const Leaves = () => {
                                 </div>
                                 <div className="form-group">
                                     <div className="document-upload">
-                                        <span>Documents</span>
+                                        {/* <label htmlFor="documentUpload" className="upload-label">
+                                            Upload Document
+                                        </label> */}
                                         <input
-                                            type="text"
-                                            placeholder="Document URL"
-                                            className="form-input"
-                                            value={document}
-                                            onChange={(e) => setDocument(e.target.value)}
+                                            type="file"
+                                            id="documentUpload"
+                                            onChange={(e) => setDocument(e.target.files[0])} // Store selected file
+                                            accept=".pdf,.doc,.docx,.jpg,.png"
                                         />
                                     </div>
                                 </div>
                             </div>
                             <div className="form-group">
                                 <input
+                                    style={{ width: "44%" }}
                                     type="text"
                                     placeholder="Reason*"
                                     className="form-input"
@@ -313,7 +491,10 @@ const Leaves = () => {
                                     onChange={(e) => setReason(e.target.value)}
                                 />
                             </div>
-                            <button className="save-btn" onClick={handleAddLeaveRequest}>Save</button>
+                            <div id='btncnt'>
+                                <button className="save-btn" onClick={handleAddLeaveRequest}>Save</button>
+
+                            </div>
                         </div>
                     </div>
                 </div>

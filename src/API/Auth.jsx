@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { server } from './Server'; // Importing the server constant
+import { server } from './Server';
 
-const BASE_URL = server; // Using the imported server constant
+const BASE_URL = server;
 
-// Axios instance with global settings (Optional)
 const api = axios.create({
     baseURL: BASE_URL,
     headers: {
@@ -11,7 +10,6 @@ const api = axios.create({
     },
 });
 
-// Register API call
 export const register = async (userData) => {
     try {
         const response = await api.post('/auth/register', userData);
@@ -21,7 +19,6 @@ export const register = async (userData) => {
     }
 };
 
-// Login API call
 export const login = async (userData) => {
     try {
         const response = await api.post('/auth/login', userData);

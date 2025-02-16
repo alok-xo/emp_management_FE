@@ -1,7 +1,6 @@
 import { server } from "./Server";
 import axios from "axios";
 
-// Function to update attendance status
 export const updateAttendanceStatus = async (attendanceId, attendanceStatus, accessToken) => {
     try {
         const response = await axios.put(

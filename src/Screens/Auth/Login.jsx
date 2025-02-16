@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../Css/Auth/login.css";
-import InputField from "../../Components/Fields"; // Import Reusable InputField Component
-import { login } from "../../API/Auth"; // Import the login function
+import InputField from "../../Components/Fields";
+import { login } from "../../API/Auth";
 
 const Login = () => {
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: "",
         password: ""
     });
-    const [errorMessage, setErrorMessage] = useState(""); // New state for error message
-    const [successMessage, setSuccessMessage] = useState(""); // New state for success message
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -24,20 +24,20 @@ const Login = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Prevent default form submission
-        setErrorMessage(""); // Reset error message before submission
-        setSuccessMessage(""); // Reset success message before submission
+        e.preventDefault();
+        setErrorMessage("");
+        setSuccessMessage(""); 
         try {
-            const data = await login(formData); // Call the login API
-            localStorage.setItem('accessToken', data.accessToken); // Save accessToken in local storage
-            setSuccessMessage("Login successful!"); // Set success message
-            console.log(data); // Handle successful login (e.g., redirect or show a message)
+            const data = await login(formData);
+            localStorage.setItem('accessToken', data.accessToken);
+            setSuccessMessage("Login successful!");
+            console.log(data);
             setTimeout(() => {
                 navigate('/candidates', { state: { fromLogin: true } });
             }, 2000);
         } catch (error) {
-            setErrorMessage(error.message || "Login failed. Please try again."); // Set error message
-            console.error(error); // Handle error (e.g., show an error message)
+            setErrorMessage(error.message || "Login failed. Please try again."); 
+            console.error(error);
         }
     };
 
@@ -48,7 +48,7 @@ const Login = () => {
                 <div className="login-left">
                     <div className="logo">🔲 LOGO</div>
                     <p className="preview-text">Dashboard Preview</p>
-                    <img src="https://via.placeholder.com/300x200" alt="Dashboard Preview" className="dashboard-img" />
+                    <img src="https://d2ogrdw2mh0rsl.cloudfront.net/production/images/static/live-for-teams-new.png" alt="Dashboard Preview" className="dashboard-img" />
                     <p className="description">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                     </p>
@@ -57,11 +57,10 @@ const Login = () => {
                     </p>
                 </div>
 
-                {/* Right Side - Login Form */}
                 <div className="login-right">
                     <h2>Welcome to Dashboard</h2>
-                    {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} {/* Display error message */}
-                    {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>} {/* Display success message */}
+                    {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} 
+                    {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
                     <form onSubmit={handleSubmit}>
                         <InputField
                             label="Email Address"

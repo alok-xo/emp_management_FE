@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../Css/table.css";
 import { FaEllipsisV } from "react-icons/fa";
-import Dropdown from "../Components/Dropdown"; // Import the dropdown component
+import Dropdown from "../Components/Dropdown"; 
+import { server } from "../API/Server";
 
 const statuses = ["New", "Scheduled", "Ongoing", "Selected", "Rejected"];
 
@@ -9,6 +10,43 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete, onStatusCha
     const [selectedStatus, setSelectedStatus] = useState({});
     const [actionMenuOpen, setActionMenuOpen] = useState(null);
     const actionMenuRef = useRef(null);
+
+    const handleDeleteCandidate = async (candidate) => {
+        try {
+            console.log("candidate email:", candidate.email);
+
+            if (!candidate.email) {
+                console.error("Candidate email is required for deletion.");
+                return;
+            }
+
+            const token = localStorage.getItem("accessToken"); 
+
+            const response = await fetch(`${server}/submission/delete_employee`, {
+                method: 'DELETE', 
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: candidate.email }) 
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete candidate: ${response.statusText}`);
+            }
+
+            console.log(`Candidate ${candidate.email} deleted successfully`);
+
+            onDelete(candidate); 
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } catch (error) {
+            console.error("Error deleting candidate:", error);
+        }
+    };
+
+
 
     useEffect(() => {
         const initialStatus = data.reduce((acc, item, index) => {
@@ -25,13 +63,11 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete, onStatusCha
         }
     };
 
-    // Toggle Action Menu
     const toggleActionMenu = (index, event) => {
         event.stopPropagation();
         setActionMenuOpen(actionMenuOpen === index ? null : index);
     };
 
-    // Close menus when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
@@ -51,7 +87,7 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete, onStatusCha
                         {columns.map((column, index) => (
                             <th key={index} data-align={column.align}>{column.label}</th>
                         ))}
-                        <th>Action</th> {/* Ensure this is added only once */}
+                        <th>Action</th> 
                     </tr>
                 </thead>
                 <tbody>
@@ -73,14 +109,13 @@ const TableComponent = ({ data = [], columns = [], onEdit, onDelete, onStatusCha
                                         )}
                                     </td>
                                 ))}
-                                {/* Action Column (Only One) */}
                                 <td className="action-cell">
                                     <div className="action-menu" ref={actionMenuRef}>
                                         <FaEllipsisV className="action-icon" onClick={(event) => toggleActionMenu(index, event)} />
                                         {actionMenuOpen === index && (
                                             <ul className="action-dropdown">
                                                 <li onClick={() => onEdit(item)}>Edit</li>
-                                                <li onClick={() => onDelete(item)}>Delete</li>
+                                                <li onClick={() => handleDeleteCandidate(item)}>Delete</li>
                                             </ul>
                                         )}
                                     </div>

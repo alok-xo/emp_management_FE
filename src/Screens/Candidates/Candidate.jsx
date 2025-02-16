@@ -7,14 +7,15 @@ import Modal from "../../Components/Modal";
 import Dropdown from "../../Components/Dropdown";
 import { submitCandidate, getAllCandidates, deleteCandidate, updateCandidateStatus } from '../../API/Candidate';
 import axios from "axios";
+import { server } from "../../API/Server";
 
 const allCandidates = [
     { name: "Jane Copper", email: "jane.copper@example.com", phone: "(704) 555-0127", position: "Intern", status: "New", experience: "0 years" },
     { name: "John Doe", email: "john.doe@example.com", phone: "(987) 654-3210", position: "Developer", status: "Scheduled", experience: "2 years" },
 ];
 
-const statuses = ["All", "New", "Scheduled", "Ongoing", "Selected", "Rejected"];
-const positions = ["All", "Intern", "Developer", "Manager", "HR", "Tester"];
+const statuses = ["All", "new", "scheduled", "ongoing", "selected", "rejected"];
+const positions = ["All", "intern", "fulltime", "junior", "senior", "teamlead"];
 
 const Candidate = () => {
     const [status, setStatus] = useState("All");
@@ -23,6 +24,45 @@ const Candidate = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCandidate, setSelectedCandidate] = useState(null);
+
+
+    const handleEditCandidate = (candidate) => {
+        setSelectedCandidate(candidate); // Set selected candidate data
+        setIsModalOpen(true); // Open modal
+    };
+
+    const handleUpdateCandidate = async (formData) => {
+        try {
+            const token = localStorage.getItem("accessToken");
+
+            const response = await axios.put(
+                `${server}/submission/update_employee`,
+                {
+                    email: formData.email,
+                    fullName: formData.fullName,
+                    phoneNumber: formData.phone,
+                    position: formData.position,
+                    experience: formData.experience,
+                    declaration: true,
+                    status: formData.status,
+                    department: formData.department,
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log(`Candidate ${formData.email} updated successfully`, response.data);
+            setIsModalOpen(false); // Close the modal after update
+            setTimeout(() => fetchCandidates(), 1000); // Refresh the candidates list
+        } catch (error) {
+            console.error("Error updating candidate:", error.response?.data || error.message);
+        }
+    };
 
     useEffect(() => {
         fetchCandidates();
@@ -32,7 +72,6 @@ const Candidate = () => {
         try {
             setLoading(true);
             const employees = await getAllCandidates();
-            // Transform the data to match the expected format
             const formattedCandidates = employees.map(emp => ({
                 name: emp.fullName,
                 email: emp.email,
@@ -44,7 +83,6 @@ const Candidate = () => {
             setCandidates(formattedCandidates);
         } catch (error) {
             console.error('Error fetching candidates:', error);
-            // Add error handling here
         } finally {
             setLoading(false);
         }
@@ -69,51 +107,39 @@ const Candidate = () => {
 
     const handleSubmitCandidate = async (formData) => {
         try {
-            // Add declaration field to the FormData
             formData.append('declaration', 'true');
 
-            // Add department and joiningDate with default values if needed
-            formData.append('department', 'Engineering'); // You might want to make this dynamic
+            formData.append('department', 'Engineering');
             formData.append('joiningDate', new Date().toISOString().split('T')[0]);
 
-            // Get the authentication token from wherever you store it
-            const token = localStorage.getItem("accessToken"); // Replace with actual token management
+            const token = localStorage.getItem("accessToken"); 
 
             await submitCandidate(formData, token);
             setIsModalOpen(false);
-            // Refresh the candidates list
-            // fetchCandidates(); // Refresh candidates list after submission
         } catch (error) {
             console.error('Error submitting candidate:', error);
-            // Add error notification here
         }
     };
 
-    // Function to delete a candidate
     const handleDeleteCandidate = async (candidate) => {
         try {
-            // Ensure candidateId is defined before making the request
             console.log("candidatewwwwwww", candidate);
 
             if (!candidate.id) {
                 throw new Error("Candidate ID is required for deletion.");
             }
             await deleteCandidate(candidate.id); // Call the delete function with candidate ID
-            // fetchCandidates(); // Refresh candidates list after deletion
         } catch (error) {
             console.error('Error deleting candidate:', error);
-            // Add error notification here
         }
     };
 
     const handleStatusChange = async (email, newStatus) => {
         try {
             await updateCandidateStatus(email, newStatus);
-            // Optionally refresh the candidates list
             await fetchCandidates();
         } catch (error) {
             console.error('Error updating candidate status:', error);
-            // Add error handling here
         }
     };
 
@@ -125,7 +151,6 @@ const Candidate = () => {
                 <div className="filter-section">
                     <Dropdown label="Status" options={statuses} selected={status === "All" ? "Status" : status} setSelected={setStatus} />
 
-                    {/* Position dropdown now correctly displays "Positions" as default text */}
                     <Dropdown
                         label="Positions"
                         options={positions}
@@ -134,7 +159,6 @@ const Candidate = () => {
                     />
 
                     <div className="search-box">
-                        {/* <FaSearch className="search-icon" /> */}
                         <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                     <button className="add-candidate-button" onClick={() => setIsModalOpen(true)}>Add Candidate</button>
@@ -146,7 +170,7 @@ const Candidate = () => {
                     <TableComponent
                         data={filteredCandidates}
                         columns={candidateColumns}
-                        onEdit={(candidate) => console.log('Edit candidate:', candidate)}
+                        onEdit={handleEditCandidate} // Pass the function here
                         onDelete={handleDeleteCandidate}
                         onStatusChange={handleStatusChange}
                     />
@@ -156,7 +180,8 @@ const Candidate = () => {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     isCandidate={true}
-                    onSubmit={handleSubmitCandidate}
+                    employeeData={selectedCandidate}
+                    onSubmit={handleUpdateCandidate}
                 />
             </div>
         </ThemeProvider>

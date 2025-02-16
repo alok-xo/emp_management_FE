@@ -20,10 +20,9 @@ export const employeeAPI = {
     
     updateEmployee: async (employeeData) => {
         try {
-            // Ensure status is set to "selected" before sending the request
             const updatedData = {
                 ...employeeData,
-                status: "selected" // Set status to "selected"
+                status: "selected"
             };
 
             const response = await axios.put(`${server}/submission/update_employee`, updatedData, {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaChevronDown } from "react-icons/fa";
-import "../Css/dropdown.css"; // Ensure CSS styles are included
+import "../Css/dropdown.css"; 
 
 const Dropdown = ({ label, options, selected, setSelected }) => {
     const [isOpen, setIsOpen] = useState(false);

@@ -44,7 +44,7 @@ export const updateCandidateStatus = async (email, status) => {
 
     const response = await axios.put(`${server}/submission/update_status`, {
         email,
-        status: status.toLowerCase() // Convert status to lowercase to match API expectations
+        status: status.toLowerCase() 
     }, config);
     return response.data;
 }; 

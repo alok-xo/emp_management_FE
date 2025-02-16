@@ -51,7 +51,7 @@ const Register = () => {
     <div className="register-container">
       <div className="register-left">
         <div className="logo">LOGO</div>
-        <img src="dashboard-preview.png" alt="Dashboard Preview" className="dashboard-image" />
+        <img src="https://d2ogrdw2mh0rsl.cloudfront.net/production/images/static/live-for-teams-new.png" alt="Dashboard Preview" className="dashboard-image" />
         <h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</h2>
         <p>
           Tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.

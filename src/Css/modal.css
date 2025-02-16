@@ -34,7 +34,7 @@
     align-items: center;
     padding: 15px 20px;
     position: relative;
-    /* Ensures close button positioning works */
+    text-align: center;
 }
 
 /* Header Text */
@@ -129,20 +129,23 @@ select option {
 /* File Upload */
 .file-upload {
     position: relative;
-    color: #5c0d87;
+    /* color: #5c0d87; */
 }
 
-.file-upload .upload-icon {
+.file-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.upload-icon {
     position: absolute;
     right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
+    font-size: 20px;
     color: #5c0d87;
     cursor: pointer;
 }
 
-/* Declaration Checkbox */
 .declaration {
     display: flex;
     align-items: center;
@@ -151,14 +154,22 @@ select option {
     font-size: 14px;
     color: #555;
     white-space: nowrap;
+    text-align: left;
 }
+
 
 .declaration input[type="checkbox"] {
     width: 16px;
     height: 16px;
     cursor: pointer;
+    margin: 0;
 }
-
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
 .declaration label {
     font-size: 14px;
     color: #555;
@@ -166,8 +177,7 @@ select option {
 
 /* Save Button */
 .save-button {
-    width: 10%;
-    padding: 12px;
+    padding: 8px 20px;
     border: none;
     border-radius: 2rem;
     font-size: 16px;
@@ -176,6 +186,8 @@ select option {
     color: white;
     font-weight: bold;
     transition: background 0.3s ease;
+    min-width: 100px;
+    text-align: center;
 }
 
 .save-button:hover {

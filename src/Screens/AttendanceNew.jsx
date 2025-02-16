@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './EmployeeNew.css';
 import Dropdown from '../Components/Dropdown';
 import SearchBar from '../Components/SearchBar';
+import { server } from '../API/Server';
 
 const EmployeeNew = () => {
   const [employees, setEmployees] = useState([]);
@@ -18,7 +19,8 @@ const EmployeeNew = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch('http://localhost:8000/submission/employees', {
+server
+      const response = await fetch(`${server}/submission/employees`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -41,7 +43,7 @@ const EmployeeNew = () => {
   const handleStatusChange = async (index, newStatus) => {
     try {
       const employee = employees[index];
-      const response = await fetch(`http://localhost:8000/submission/updateAttendance/${employee._id}`, {
+      const response = await fetch(`${server}/submission/updateAttendance/${employee._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +63,6 @@ const EmployeeNew = () => {
       setEmployees(updatedEmployees);
     } catch (err) {
       setError(err.message);
-      // Optionally revert the UI change if the API call fails
       console.error('Error updating attendance status:', err);
     }
   };
@@ -107,7 +108,6 @@ const EmployeeNew = () => {
               {filteredEmployees.map((employee, index) => (
                 <tr key={employee._id}>
                   <td className="profile-cell">
-                    {/* Profile image placeholder */}
                   </td>
                   <td>{employee.fullName}</td>
                   <td>{employee.position}</td>
