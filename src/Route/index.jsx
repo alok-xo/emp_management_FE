@@ -35,7 +35,7 @@ export const AppRoutes = () => {
                 path="/"
                 element={
                     isAuthenticated ? (
-                        <Navigate to="/candidates" replace />
+                        <Navigate to="/register" replace />
                     ) : (
                         <Navigate to="/login" replace />
                     )
